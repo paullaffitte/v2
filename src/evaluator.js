@@ -1,46 +1,11 @@
-const child_process = require('child_process');
 const xml = require('xmlbuilder');
 const pipeline = require('./pipeline');
+const execution = require('./execution');
+const evaluators = require('./evaluators');
 
 let xmlResult;
-let _timeout = 3000;
 let _index = -1;
-let evaluators = {};
 
-function setTimeout(timeout) {
-  _timeout = timeout;
-}
-
-function formatTrace(cmd, err, stdout, stderr) {
-  let trace = {
-    cmd: cmd,
-    stdout: stdout,
-    stderr: stderr,
-    returnValue: err ? err.code : 0,
-  };
-
-  if (err && err.signal) {
-    trace.error = {
-      signal: err.signal,
-      label: err.killed ? 'Timeout' : 'Crash'
-    };
-  }
-  return trace;
-}
-
-function exec(cmd, timeout) {
-  return new Promise(function(resolve, reject) {
-    if (!cmd)
-      resolve(null);
-    else
-      child_process.exec(cmd, {
-        timeout: timeout ? timeout : _timeout,
-        killSignal: 'SIGTERM'
-      }, (err, stdout, stderr) => {
-        resolve(formatTrace(cmd, err, stdout, stderr));
-      });
-  });
-}
 
 function xmlTestcase(testname) {
   const splitedName = testname.split('.');
@@ -105,6 +70,7 @@ function error(testname, trace) {
 function evaluate(pipelineItem, evaluator, trace) {
   evaluator.call(pipelineItem.options, trace)
     .then((evaluation) => {
+      console.log('evaluate');
       if (evaluation.success)
         success(pipelineItem.testname);
       else
@@ -117,12 +83,14 @@ function evaluate(pipelineItem, evaluator, trace) {
 const actions = {
   test: function(pipelineItem) {
     let evaluator = evaluators[pipelineItem.evaluator];
-    exec(pipelineItem.cmd)
+    execution.exec(pipelineItem.cmd)
       .then((trace) => {
         if (trace.error)
           error(pipelineItem.testname, trace);
         else if (typeof evaluator === 'function')
           evaluate(pipelineItem, evaluator, trace);
+        else
+          console.error('evaluator ' + pipelineItem.evaluator + ' not found');
       })
       .catch(console.error);
   }
@@ -150,11 +118,7 @@ function run() {
   next();
 };
 
-const test = require('./pipeline').test;
 module.exports = {
-  test,
-  exec,
   run,
-  timeout: setTimeout,
   evaluators
 };
