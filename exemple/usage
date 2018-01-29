@@ -1,1 +1,5 @@
+#!/bin/bash
+
 cat usage.txt
+
+exit 1

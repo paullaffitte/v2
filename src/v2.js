@@ -19,9 +19,9 @@ function formatTrace(cmd, err, stdout, stderr) {
     returnValue: err ? err.code : 0,
   };
 
-  if (err) {
+  if (err && err.signal) {
     trace.error = {
-      signal: err.code === 139 ? 'SIGSEGV' : err.signal,
+      signal: err.signal,
       label: err.killed ? 'Timeout' : 'Crash'
     };
   }
@@ -65,13 +65,17 @@ function xmlError(testcase, details) {
 
 
 function getLogs(trace, evaluation) {
-  let msg = `Failure reason: ${evaluation.summary}\n`
   let exitSignal = 'None (process exited normally)';
+  let reason = '';
 
   if (trace.error) {
     exitSignal = `${trace.error.signal} [${trace.error.label}]`;
   }
+  else if (evaluation) {
+    reason = `Failure reason: ${evaluation.summary};\n`
+  }
 
+  let msg = reason;
   msg += `Executed shell command: ${trace.cmd}\n`;
   msg += `Process exit signal: ${exitSignal}\n`;
   msg += `Process exit status: ${trace.returnValue}\n@~#`;
@@ -87,41 +91,40 @@ function success(testname) {
 
 function failure(testname, trace, evaluation) {
   let testcase = xmlTestcase(testname);
+  xmlFailure(testcase, getLogs(trace, evaluation));
+  console.log(testname + ' > FAILURE (' + evaluation.summary + ')');
+}
 
-  let logs = getLogs(trace, evaluation);
-  if (trace.error) {
-    console.log(testname + ' > ERROR (' + trace.error.label + ')');
-    xmlError(testcase, logs);
-  } else {
-    let failureSummary = (evaluation ? evaluation.summary : '');
-    console.log(testname + ' > FAILURE (' + failureSummary + ')');
-    xmlFailure(testcase, logs);
-  }
+function error(testname, trace) {
+  let testcase = xmlTestcase(testname);
+  xmlError(testcase, getLogs(trace));
+  console.log(testname + ' > ERROR (' + trace.error.label + ')');
+  next();
+}
+
+function evaluate(pipelineItem, evaluator, trace) {
+  evaluator.call(pipelineItem.options, trace)
+    .then((evaluation) => {
+      if (evaluation.success)
+        success(pipelineItem.testname);
+      else
+        failure(pipelineItem.testname, trace, evaluation)
+    })
+    .then(next)
+    .catch(console.error);
 }
 
 const actions = {
   test: function(pipelineItem) {
-    let promises = exec(pipelineItem.cmd);
     let evaluator = evaluators[pipelineItem.evaluator];
-    let tmp = {};
-
-    if (typeof evaluator === 'function') {
-      promises = promises
-        .then(function(trace) {
-          tmp.trace = trace;
-          return trace;
-        })
-        .then(evaluator.bind(pipelineItem.options))
-        .then((evaluation) => {
-          let trace = tmp.trace;
-          if (evaluation.success)
-            success(pipelineItem.testname);
-          else
-            failure(pipelineItem.testname, trace, evaluation)
-        })
-        .then(next)
-        .catch(console.error);
-    }
+    exec(pipelineItem.cmd)
+      .then((trace) => {
+        if (trace.error)
+          error(pipelineItem.testname, trace);
+        else if (typeof evaluator === 'function')
+          evaluate(pipelineItem, evaluator, trace);
+      })
+      .catch(console.error);
   }
 };
 
