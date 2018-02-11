@@ -1,15 +1,11 @@
-const xml = require('xmlbuilder');
-const pipeline = require('./pipeline');
 const execution = require('./execution');
 const evaluators = require('./evaluators');
 
-let xmlResult;
-let _index = -1;
-
+let result = {};
 
 function xmlTestcase(testname) {
   const splitedName = testname.split('.');
-  return xmlResult.ele('testcase', {
+  return result.xml.ele('testcase', {
     name: splitedName[2],
     classname: splitedName[0] + '.' + splitedName[1],
   });
@@ -64,60 +60,38 @@ function error(testname, trace) {
   let testcase = xmlTestcase(testname);
   xmlError(testcase, getLogs(trace));
   console.log(testname + ' > ERROR (' + trace.error.label + ')');
-  next();
 }
 
 function evaluate(pipelineItem, evaluator, trace) {
-  evaluator.call(pipelineItem.options, trace)
+  return evaluator.call(pipelineItem.options, trace)
     .then((evaluation) => {
       if (evaluation.success)
         success(pipelineItem.testname);
       else
         failure(pipelineItem.testname, trace, evaluation)
     })
-    .then(next)
+}
+
+let receipe = function(pipelineItem, next) {
+  let evaluator = evaluators[pipelineItem.evaluator];
+  execution.exec(pipelineItem.cmd)
+    .then((trace) => {
+      if (trace.error) {
+        error(pipelineItem.testname, trace);
+        next();
+      }
+      else if (typeof evaluator === 'function')
+        evaluate(pipelineItem, evaluator, trace).then(next).catch(console.error);
+      else {
+        console.error('evaluator ' + pipelineItem.evaluator + ' not found');
+        next();
+      }
+    })
     .catch(console.error);
 }
 
-const actions = {
-  test: function(pipelineItem) {
-    let evaluator = evaluators[pipelineItem.evaluator];
-    execution.exec(pipelineItem.cmd)
-      .then((trace) => {
-        if (trace.error)
-          error(pipelineItem.testname, trace);
-        else if (typeof evaluator === 'function')
-          evaluate(pipelineItem, evaluator, trace);
-        else
-          console.error('evaluator ' + pipelineItem.evaluator + ' not found');
-      })
-      .catch(console.error);
-  }
-};
-
-function next() {
-  _index += 1;
-
-  if (_index < pipeline.pipeline.length) {
-    let pipelineItem = pipeline.pipeline[_index];
-    actions[pipelineItem.action](pipelineItem);
-  } else {
-    console.warn(xmlResult.end({ 
-      pretty: true,
-      indent: '  ',
-      newline: '\n',
-      allowEmpty: true,
-      spacebeforeslash: ''
-    }));
-  }
-}
-
-function run() {
-  xmlResult = xml.create('testsuite');
-  next();
-};
-
 module.exports = {
-  run,
-  evaluators
+  evaluators,
+  receipe,
+  result
 };
