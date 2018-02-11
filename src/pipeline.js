@@ -1,12 +1,12 @@
 const xml = require('xmlbuilder');
-const _evaluator = require('./evaluator');
+const receipeModule = require('./receipe');
 
 let pipeline = [];
 let index = -1;
 
 function receipe(cmd, testname, evaluator, options) {
   pipeline.push({
-    action: _evaluator.receipe,
+    action: receipeModule.receipe,
     cmd: cmd,
     testname: testname,
     evaluator: evaluator,
@@ -21,7 +21,7 @@ function next() {
     let pipelineItem = pipeline[index];
     pipelineItem.action(pipelineItem, next);
   } else {
-    console.warn(_evaluator.result.xml.end({ 
+    console.warn(receipeModule.result.xml.end({ 
       pretty: true,
       indent: '  ',
       newline: '\n',
@@ -32,7 +32,7 @@ function next() {
 }
 
 function run() {
-  _evaluator.result.xml = xml.create('testsuite');
+  receipeModule.result.xml = xml.create('testsuite');
   next();
 };
 

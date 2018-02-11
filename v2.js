@@ -1,8 +1,8 @@
-const evaluator   = require('./src/evaluator');
-const pipeline    = require('./src/pipeline');
-const execution   = require('./src/execution');
+const receipeModule = require('./src/receipe');
+const pipeline      = require('./src/pipeline');
+const execution     = require('./src/execution');
 
-const evaluators  = evaluator.evaluators;
+const evaluators  = receipeModule.evaluators;
 
 const receipe     = pipeline.receipe;
 const run         = pipeline.run;
