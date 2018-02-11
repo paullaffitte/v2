@@ -70,7 +70,6 @@ function error(testname, trace) {
 function evaluate(pipelineItem, evaluator, trace) {
   evaluator.call(pipelineItem.options, trace)
     .then((evaluation) => {
-      console.log('evaluate');
       if (evaluation.success)
         success(pipelineItem.testname);
       else

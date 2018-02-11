@@ -1,22 +1,9 @@
 const execution = require('./execution');
 const fs = require('fs');
 
-let v2stdout = function(trace) {
-  let stdoutFile = '.v2stdout';
-  let referenceFile = '.v2reference';
-
-  fs.writeFileSync(stdoutFile, trace.stdout)
-  if (!this.referenceFile) {
-    fs.writeFileSync(referenceFile, this.reference);
-  } else {
-    referenceFile = this.referenceFile
-  }
-
-  return execution.exec(`diff ${stdoutFile} ${referenceFile}`)
+let v2file = function(trace) {
+  return execution.exec(`diff ${this.filename} ${this.referenceFilename}`)
     .then((diffTrace) => {
-      fs.unlinkSync(stdoutFile);
-      if (!this.referenceFile)
-        fs.unlinkSync(referenceFile);
       if (diffTrace.returnValue != 0) {
         return {
           summary: 'Output differs',
@@ -32,6 +19,39 @@ let v2stdout = function(trace) {
     });
 };
 
+let v2stdout = function(trace) {
+  let conf = {
+    filename: '.v2stdout',
+    referenceFilename: '.v2reference'
+  };
+
+  let unlinkReferenceFile = true;
+  let fileEvaluator = v2file.bind(conf, trace);
+  let promises = new Promise((resolve, reject) => {resolve();});
+
+  if (this.binaryReference) {
+    promises = execution.exec(this.binaryReference).then((binaryRefTrace) => {
+      fs.writeFileSync(conf.referenceFilename, binaryRefTrace.stdout);
+    });
+  } else if (this.stringReference) {
+    fs.writeFileSync(conf.referenceFilename, this.stringReference);
+  } else if (this.fileReference) {
+    conf.referenceFilename = this.fileReference
+    unlinkReferenceFile = false;
+  }
+
+  fs.writeFileSync(conf.filename, trace.stdout);
+  return promises
+    .then(fileEvaluator)
+    .then((evaluation) => {
+      fs.unlinkSync(conf.filename);
+      if (unlinkReferenceFile)
+        fs.unlinkSync(conf.referenceFilename);  
+      return evaluation;
+    });
+};
+
 module.exports = {
-  v2stdout
+  v2stdout,
+  v2file
 };
