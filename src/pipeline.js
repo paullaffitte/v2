@@ -2,7 +2,7 @@ const xml = require('xmlbuilder');
 const receipeModule = require('./receipe');
 
 let pipeline = [];
-let index = 0;
+let index = -1;
 
 function receipe(cmd, testname, evaluator, options) {
   pipeline.push({
@@ -15,11 +15,11 @@ function receipe(cmd, testname, evaluator, options) {
 }
 
 function next() {
+  ++index;
   if (index < pipeline.length) {
     let pipelineItem = pipeline[index];
     pipelineItem.action(pipelineItem, next);
   }
-  ++index;
 }
 
 function run() {

@@ -3,8 +3,8 @@ const scopes = require('./scopes');
 function render(scopeName, evaluation, trace) {
   scope = scopes.getScope(scopeName);
   if (scope && scope.loggers) {
-    scope.loggers.forEach(logger => {
-      logger(evaluation, trace);
+    scope.loggers.forEach(loggerFunc => {
+      loggerFunc(evaluation, trace, !scope.failure);
     });
   }
 };
@@ -14,13 +14,11 @@ let log = function(scopeName, evaluation, trace) {
 
   while (scopeName != '') {
     render(scopeName, evaluation, trace);
-    scopeName = scopeName.split('.');
-    scopeName.pop();
-    scopeName = scopeName.join('.');
+    scopeName = scopes.parent(scopeName);
   }
 
-  render(scopeName, evaluation);
-}
+  render(scopeName, evaluation, trace);
+};
 
 let logger = function(scopeName, callback) {
   if (callback == null && typeof scopeName == 'function') {
@@ -33,7 +31,7 @@ let logger = function(scopeName, callback) {
     	scope.loggers = [];
     scope.loggers.push(callback);
   });
-}
+};
 
 module.exports = {
   logger,

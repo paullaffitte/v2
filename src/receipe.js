@@ -5,12 +5,20 @@ const logger = require('./logger');
 
 let receipe = function(pipelineItem, next) {
   let evaluator = evaluators[pipelineItem.evaluator];
+  let scopeName = pipelineItem.testname;
+
+  if (!scopes.isReachable(scopeName)) {
+    next();
+    return;
+  }
   execution.exec(pipelineItem.cmd)
     .then((trace) => {
       if (typeof evaluator === 'function') {
         evaluator.call(pipelineItem.options, trace)
           .then((evaluation) => {
-            logger.log(pipelineItem.testname, evaluation, trace);
+            trace.scopeName = scopeName;
+            scopes.validate(scopeName, evaluation);
+            logger.log(scopeName, evaluation, trace);
           })
           .then(next)
           .catch(console.error)
