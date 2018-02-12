@@ -2,6 +2,10 @@
 
 const v2 = require('../v2');
 
+v2.scope('v2.stdout', {
+	policies: ['selfFailure', 'dependency']
+})
+
 v2.receipe('./usage', 'v2.stdout.success', 'v2stdout', {
   fileReference: 'usage.txt'
 });
@@ -18,11 +22,6 @@ v2.receipe('ls', 'v2.stdout.failure', 'v2stdout', {
   stringReference: 'tests.js stdout stdout.txt'
 });
 
-// v2.scope('v2.stdout', {
-// 	policies: ['selfFailure', 'dependency']
-// 	// policies: ['scopeFailure']
-// 	// policies: ['dependency']
-// })
 
 // v2.renderer('receipe.parameters.evaluator-only', (evaluation) => {
 // 	console.log('evaluator-only!!!');
