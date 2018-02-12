@@ -12,7 +12,7 @@ const run         = pipeline.run;
 const exec        = execution.exec;
 const timeout     = execution.timeout;
 
-const scope       = scopes.scope;
+const dependency  = scopes.dependency;
 
 module.exports = {
   receipe,
@@ -20,6 +20,6 @@ module.exports = {
   run,
   timeout,
   evaluators,
-  scope,
+  dependency,
   logger
 };

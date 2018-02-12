@@ -14,7 +14,7 @@ let parent = function(name) {
   return name.join('.');
 }
 
-let scope = function(name) {
+let dependency = function(name) {
   let path = getPath(name);
   let tmp = scopes.childs;
   
@@ -91,7 +91,7 @@ let isReachable = function(name) {
 }
 
 module.exports = {
-  scope,
+  dependency,
   getScope,
   editScope,
   parent,

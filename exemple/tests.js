@@ -2,7 +2,7 @@
 
 const v2 = require('../v2');
 
-v2.scope('v2.stdout.error');
+v2.dependency('v2.stdout.error');
 
 v2.receipe('./usage', 'v2.stdout.success', 'v2stdout', {
   fileReference: 'usage.txt'
@@ -54,7 +54,7 @@ v2.logger('v2.stdout2.failure', (evaluation, trace) => {
 //   stringReference: 'tests.js stdout stdout.txt'
 // });
 
-// v2.receipe('ls', 'receipe.parameters.evaluator-only', 'v2success');
+// v2.receipe('ls', 'receipe.parameters.evaluator-only:dependency', 'v2success');
 // v2.receipe('ls', 'receipe.parameters.auto-check-return');
 
 v2.run();
