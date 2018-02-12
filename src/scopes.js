@@ -20,25 +20,38 @@ let scope = function(name, options) {
   });
 }
 
-let getOptions = function(name) {
+let getScope = function(name) {
   let path = getPath(name);
   let scope = scopes;
-  let options = null;
 
   let i = 0;
   while (scope && scope.childs && i < path.length) {
     scope = scope.childs[path[i]];
-    if (!scope)
-      break;
-    options = scope.options;
     ++i;
   }
 
   if (i != path.length)
     return null;
-  return options;
+  return scope;
+}
+
+let editScope = function(name, editCallback) {
+  let path = getPath(name);
+  let scope = scopes;
+
+  let i = 0;
+  while (i < path.length) {
+    if (!scope.childs[path[i]])
+      scope.childs[path[i]] = {childs: {}}
+    scope = scope.childs[path[i]];
+    ++i;
+  }
+
+  editCallback(scope)
 }
 
 module.exports = {
-  scope
+  scope,
+  getScope,
+  editScope
 };

@@ -1,5 +1,7 @@
 const execution = require('./execution');
 const evaluators = require('./evaluators');
+const scopes = require('./scopes');
+const logger = require('./logger');
 
 let result = {};
 
@@ -22,8 +24,6 @@ function xmlError(testcase, details) {
     message: 'Test crashed'
   }, details);
 }
-
-
 
 function getLogs(trace, evaluation) {
   let exitSignal = 'None (process exited normally)';
@@ -62,15 +62,7 @@ function error(testname, trace) {
   console.log(testname + ' > ERROR (' + trace.error.label + ')');
 }
 
-function evaluate(pipelineItem, evaluator, trace) {
-  return evaluator.call(pipelineItem.options, trace)
-    .then((evaluation) => {
-      if (evaluation.success)
-        success(pipelineItem.testname);
-      else
-        failure(pipelineItem.testname, trace, evaluation)
-    })
-}
+
 
 let receipe = function(pipelineItem, next) {
   let evaluator = evaluators[pipelineItem.evaluator];
@@ -79,10 +71,18 @@ let receipe = function(pipelineItem, next) {
       if (trace.error) {
         error(pipelineItem.testname, trace);
         next();
-      }
-      else if (typeof evaluator === 'function')
-        evaluate(pipelineItem, evaluator, trace).then(next).catch(console.error);
-      else {
+      } else if (typeof evaluator === 'function') {
+        evaluator.call(pipelineItem.options, trace)
+          .then((evaluation) => {
+              if (evaluation.success)
+                success(pipelineItem.testname);
+              else
+                failure(pipelineItem.testname, trace, evaluation)
+            logger.log(pipelineItem.testname, evaluation);
+          })
+          .then(next)
+          .catch(console.error)
+      } else {
         console.error('evaluator ' + pipelineItem.evaluator + ' not found');
         next();
       }

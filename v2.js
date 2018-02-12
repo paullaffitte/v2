@@ -2,6 +2,7 @@ const receipeModule = require('./src/receipe');
 const pipeline      = require('./src/pipeline');
 const execution     = require('./src/execution');
 const scopes 	    = require('./src/scopes');
+const logger 	    = require('./src/logger').logger;
 
 const evaluators  = receipeModule.evaluators;
 
@@ -19,5 +20,6 @@ module.exports = {
   run,
   timeout,
   evaluators,
-  scope
+  scope,
+  logger
 };

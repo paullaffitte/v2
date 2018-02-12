@@ -23,15 +23,15 @@ v2.receipe('ls', 'v2.stdout.failure', 'v2stdout', {
 });
 
 
-// v2.renderer('receipe.parameters.evaluator-only', (evaluation) => {
-// 	console.log('evaluator-only!!!');
-// 	return true;
-// });
+v2.logger('v2.stdout', (evaluation) => {
+  console.log('\tscope v2.stdout');
+  if (!evaluation.success)
+    console.log('\tfailure on scope v2.stdout');
+});
 
-// v2.renderer('receipe.parameters', (evaluation) => {
-// 	console.log(evaluation);
-// 	return true;
-// });
+v2.logger('v2.stdout.failure', (evaluation) => {
+	console.log('\tv2.stdout.failure');
+});
 
 // v2.receipe('ls', 'receipe.parameters.array', [
 //   {
