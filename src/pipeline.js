@@ -2,7 +2,7 @@ const xml = require('xmlbuilder');
 const receipeModule = require('./receipe');
 
 let pipeline = [];
-let index = -1;
+let index = 0;
 
 function receipe(cmd, testname, evaluator, options) {
   pipeline.push({
@@ -15,24 +15,14 @@ function receipe(cmd, testname, evaluator, options) {
 }
 
 function next() {
-  index += 1;
-
   if (index < pipeline.length) {
     let pipelineItem = pipeline[index];
     pipelineItem.action(pipelineItem, next);
-  } else {
-    console.warn(receipeModule.result.xml.end({ 
-      pretty: true,
-      indent: '  ',
-      newline: '\n',
-      allowEmpty: true,
-      spacebeforeslash: ''
-    }));
   }
+  ++index;
 }
 
 function run() {
-  receipeModule.result.xml = xml.create('testsuite');
   next();
 };
 

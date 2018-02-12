@@ -23,14 +23,14 @@ v2.receipe('ls', 'v2.stdout.failure', 'v2stdout', {
 });
 
 
-v2.logger('v2.stdout', (evaluation) => {
-  console.log('\tscope v2.stdout');
+v2.logger('v2.stdout', (evaluation, trace) => {
+  console.log('---- SCOPE V2.STDOUT - ' + trace.cmd);
   if (!evaluation.success)
-    console.log('\tfailure on scope v2.stdout');
+    console.log('failure on scope v2.stdout');
 });
 
-v2.logger('v2.stdout.failure', (evaluation) => {
-	console.log('\tv2.stdout.failure');
+v2.logger('v2.stdout.failure', (evaluation, trace) => {
+	console.log(trace);
 });
 
 // v2.receipe('ls', 'receipe.parameters.array', [

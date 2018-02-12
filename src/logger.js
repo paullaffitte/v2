@@ -1,19 +1,19 @@
 const scopes = require('./scopes');
 
-function render(scopeName, evaluation) {
+function render(scopeName, evaluation, trace) {
   scope = scopes.getScope(scopeName);
   if (scope && scope.loggers) {
     scope.loggers.forEach(logger => {
-      logger(evaluation);
+      logger(evaluation, trace);
     });
   }
 };
 
-let log = function(scopeName, evaluation) {
+let log = function(scopeName, evaluation, trace) {
   let scope = null;
 
   while (scopeName != '') {
-    render(scopeName, evaluation);
+    render(scopeName, evaluation, trace);
     scopeName = scopeName.split('.');
     scopeName.pop();
     scopeName = scopeName.join('.');
