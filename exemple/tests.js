@@ -6,6 +6,18 @@ v2.receipe('./usage', 'v2.stdout.success', 'v2stdout', {
   fileReference: 'usage.txt'
 });
 
+v2.receipe('./usage', 'v2.stdout.funcSuccess', trace => {
+  return { success: true };
+}, {
+  fileReference: 'usage.txt'
+});
+
+v2.receipe('./usage', 'v2.stdout.funcFailure', trace => {
+  return { success: false };
+}, {
+  fileReference: 'usage.txt'
+});
+
 v2.receipe('ls -aze', 'v2.stdout.error:dependency', 'v2stdout', {
   fileReference: 'usage.txt'
 });
