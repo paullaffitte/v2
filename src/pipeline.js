@@ -1,14 +1,22 @@
 const xml = require('xmlbuilder');
 const receipeModule = require('./receipe');
+const scopes = require('./scopes');
 
 let pipeline = [];
 let index = -1;
 
-function receipe(cmd, testname, evaluator, options) {
+function receipe(cmd, target, evaluator, options) {
+  let scopeName = target.split(':')[0];
+  let isDependency = (target.split(':')[1] == 'dependency')
+
+  if (isDependency) {
+    scopes.dependency(scopeName);
+  }
+
   pipeline.push({
     action: receipeModule.receipe,
     cmd: cmd,
-    testname: testname,
+    testname: scopeName,
     evaluator: evaluator,
     options: options 
   });

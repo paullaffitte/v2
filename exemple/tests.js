@@ -2,13 +2,11 @@
 
 const v2 = require('../v2');
 
-v2.dependency('v2.stdout.error');
-
 v2.receipe('./usage', 'v2.stdout.success', 'v2stdout', {
   fileReference: 'usage.txt'
 });
 
-v2.receipe('ls -aze', 'v2.stdout.error', 'v2stdout', {
+v2.receipe('ls -aze', 'v2.stdout.error:dependency', 'v2stdout', {
   fileReference: 'usage.txt'
 });
 
