@@ -73,10 +73,9 @@ let failure = function(scope) {
     failure(getScope(parent(scope.name)));
 }
 
-let validate = function(name, evaluation) {
+let validate = function(evaluation) {
   if (!evaluation.success) 
-    failure(getScope(name));
-
+    failure(getScope(evaluation.scopeName));
 }
 
 let isReachable = function(name) {

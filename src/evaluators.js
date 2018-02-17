@@ -1,6 +1,14 @@
 const execution = require('./execution');
 const fs = require('fs');
 
+let v2success = function(trace) {
+  return { success: trace.returnValue == 0 };
+}
+
+let v2failure = function(trace) {
+  return { success: trace.returnValue != 0};
+}
+
 let v2file = function(trace) {
   return execution.exec(`diff ${this.filename} ${this.referenceFilename}`)
     .then((diffTrace) => {
@@ -14,7 +22,7 @@ let v2file = function(trace) {
                + '\n================\n\n'
         };
       } else {
-        return {success: true};
+        return { success: true };
       }
     });
 };
@@ -52,6 +60,8 @@ let v2stdout = function(trace) {
 };
 
 module.exports = {
+  v2success,
+  v2failure,
   v2stdout,
   v2file
 };

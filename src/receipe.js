@@ -4,7 +4,6 @@ const scopes = require('./scopes');
 const logger = require('./logger');
 
 let receipe = function(pipelineItem, next) {
-  let evaluator = pipelineItem.evaluator;
   let scopeName = pipelineItem.testname;
   let data = {};
 
@@ -13,28 +12,45 @@ let receipe = function(pipelineItem, next) {
     return;
   }
 
-  if (typeof evaluator === 'string') {
-    evaluator = evaluators[evaluator];
-  }
+  let promises = execution.exec(pipelineItem.cmd)
+    .then(trace => {
+      data.trace = trace;
+      return trace;
+    });
 
-  if (typeof evaluator === 'function') {
-    execution.exec(pipelineItem.cmd)
-      .then(trace => {
-        data.trace = trace;
-        return trace;
-      })
-      .then(evaluator.bind(pipelineItem.options))
-      .then(evaluation => {
-        data.trace.scopeName = scopeName;
-        scopes.validate(scopeName, evaluation);
-        logger.log(scopeName, evaluation, data.trace);
-      })
-      .then(next)
-      .catch(console.error);
-  } else {
-    console.error('evaluator ' + pipelineItem.evaluator + ' not found');
-    next();
-  }
+
+  pipelineItem.evaluations.forEach(evaluationModel => {
+    let evaluator = evaluationModel.evaluator;
+    let options = evaluationModel.options;
+    let evaluatorName = 'untitled';
+
+    if (typeof evaluator === 'string') {
+      evaluatorName = evaluator;
+      evaluator = evaluators[evaluator];
+    }
+
+    if (typeof evaluator === 'function') {
+      promises = promises
+        .then(evaluator.bind(options))
+        .then(evaluation => {
+          data.trace.scopeName = scopeName;
+          evaluation.scopeName = evaluationModel.scopeName;
+          scopes.validate(evaluation);
+          logger.log(scopeName, evaluation, data.trace);
+          return data.trace;
+        });
+    } else {
+      console.error('evaluator ' + evaluatorName + ' not found');
+    }
+  });
+
+  promises
+    .then(next)
+    .catch(error => {
+      console.error(error);
+      next();
+    });
+    
 }
 
 module.exports = {
