@@ -45,7 +45,7 @@ function getEvaluationModels(evaluations) {
   evaluations.forEach(evaluation => {
     evaluationModels.push({
       subTarget: evaluation.subTarget,
-      evaluator: evaluation.evaluator,
+      evaluator: evaluation.evaluator ? evaluation.evaluator : 'v2success',
       options: evaluation.options
     });
   });
@@ -54,7 +54,12 @@ function getEvaluationModels(evaluations) {
 }
 
 function receipe(cmd, target, evaluations, options) {
-  let scopeName = getScopeName(target);
+  if (!target)
+    target = '';
+
+  if (!evaluations) {
+    evaluations = 'v2success';
+  }
 
   if (typeof evaluations === 'string' || typeof evaluations === 'function') {
     evaluations = [{
@@ -70,7 +75,7 @@ function receipe(cmd, target, evaluations, options) {
   pipeline.push({
     action: receipeModule.receipe,
     cmd: cmd,
-    testname: scopeName,
+    testname: getScopeName(target),
     evaluations: evaluations,
     options: options
   });

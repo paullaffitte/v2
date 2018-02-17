@@ -2,32 +2,48 @@
 
 const v2 = require('../v2');
 
-v2.receipe('./usage', 'v2.stdout.success', 'v2stdout', {
+/*
+** Stdout evaluator with file, binary and string reference
+*/
+v2.receipe('./usage', 'v2.stdout.file.success', 'v2stdout', {
   fileReference: 'usage.txt'
 });
 
-v2.receipe('ls -aze', 'v2.stdout.error:dependency', 'v2stdout', {
+v2.receipe('ls', 'v2.stdout.file.failure:dependency', 'v2stdout', {
   fileReference: 'usage.txt'
 });
 
-v2.receipe('ls', 'v2.stdout.success_2', 'v2stdout', {
-  stringReference: 'tests.js\nusage\nusage.txt\n'
+v2.receipe('ls', 'v2.stdout.binary.success', 'v2stdout', {
+  binaryReference: 'ls'
 });
 
-v2.receipe('ls', 'v2.stdout2.failure', 'v2stdout', {
-  stringReference: 'tests.js stdout stdout.txt'
+v2.receipe('ls', 'v2.stdout2.string.failure', 'v2stdout', {
+  stringReference: '.\n..'
 });
 
+/*
+** Success and failure basic evaluators
+*/
+v2.receipe('pwd');
+v2.receipe('pwd', 'v2.v2success.success');
+v2.receipe('pwdd', 'v2.v2success.failure');
+v2.receipe('pwdd', 'v2.v2failure.success', 'v2failure');
+v2.receipe('pwd', 'v2.v2failure.failure', 'v2failure');
 
+/*
+** Callback evaluators
+*/
 v2.receipe('./usage', 'v2.func.success', trace => {
   return { success: true };
-}, {});
+});
 
 v2.receipe('./usage', 'v2.func.failure', trace => {
   return { success: false };
-}, {});
+});
 
-
+/*
+** Multi-evaluation
+*/
 let subtests = [
   {
     subTarget: 'func-const-failure',
@@ -44,12 +60,14 @@ let subtests = [
     evaluator: 'v2failure'
   }
 ];
-
 v2.receipe('./usage', 'v2.multi.usage', subtests);
 v2.receipe('ls', 'v2.multi.ls', subtests);
 
 
 
+/*
+** Global logger
+*/
 v2.logger((evaluation, trace) => {
   console.log('global scope ----------------');
   console.log('group: ', trace.scopeName);
@@ -60,6 +78,9 @@ v2.logger((evaluation, trace) => {
   console.log('-----------------------------\n');
 });
 
+/*
+** Scoped loggers
+*/
 v2.logger('v2.stdout', (evaluation, trace, success) => {
   console.log('---- SCOPE V2.STDOUT - ' + trace.cmd);
   if (!success)
@@ -70,4 +91,8 @@ v2.logger('v2.stdout2.failure', (evaluation, trace) => {
   console.log(trace.scopeName + ' returnValue: ' + trace.returnValue);
 });
 
+
+/*
+** Run the receipes
+*/
 v2.run();
