@@ -93,6 +93,11 @@ v2.logger('v2.stdout2.failure', (evaluation, trace) => {
 
 
 /*
+** Set global timeout
+*/
+v2.timeout(500);
+
+/*
 ** Run the receipes
 */
 v2.run();

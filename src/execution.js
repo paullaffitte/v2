@@ -1,6 +1,6 @@
 const child_process = require('child_process');
 
-let _timeout = 3000;
+let _timeout = 0;
 
 function setTimeout(timeout) {
   _timeout = timeout;
@@ -19,6 +19,8 @@ function formatTrace(cmd, err, stdout, stderr) {
       signal: err.signal,
       label: err.killed ? 'Timeout' : 'Crash'
     };
+    if (err.killed)
+      trace.error.time = _timeout;
   }
   return trace;
 }
