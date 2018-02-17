@@ -39,7 +39,13 @@ function exec(cmd, timeout) {
   });
 }
 
+function timeout(pipelineItem, next) {
+  setTimeout(pipelineItem.value);
+  next();
+}
+
+
 module.exports = {
   exec,
-  timeout: setTimeout
+  timeout
 };

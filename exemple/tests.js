@@ -64,6 +64,15 @@ v2.receipe('./usage', 'v2.multi.usage', subtests);
 v2.receipe('ls', 'v2.multi.ls', subtests);
 
 
+/*
+** Timeout
+*/
+v2.timeout(1);
+v2.receipe('ls -lRa ~/', 'v2.timeout.ls');
+
+v2.logger('v2.timeout.ls', (evaluation, trace) => {
+  console.log(trace.error);
+});
 
 /*
 ** Global logger

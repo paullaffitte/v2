@@ -8,9 +8,9 @@ const evaluators  = receipeModule.evaluators;
 
 const receipe     = pipeline.receipe;
 const run         = pipeline.run;
+const timeout     = pipeline.timeout;
 
 const exec        = execution.exec;
-const timeout     = execution.timeout;
 
 const dependency  = scopes.dependency;
 

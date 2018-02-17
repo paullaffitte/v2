@@ -1,5 +1,6 @@
 const xml = require('xmlbuilder');
 const receipeModule = require('./receipe');
+const execution = require('./execution');
 const scopes = require('./scopes');
 
 let pipeline = [];
@@ -81,12 +82,16 @@ function receipe(cmd, target, evaluations, options) {
   });
 }
 
+function timeout(value) {
+  pipeline.push({
+    action: execution.timeout,
+    value: value
+  });
+}
+
 function next() {
-  ++index;
-  if (index < pipeline.length) {
-    let pipelineItem = pipeline[index];
-    pipelineItem.action(pipelineItem, next);
-  }
+  if (++index < pipeline.length)
+    pipeline[index].action(pipeline[index], next);
 }
 
 function run() {
@@ -95,5 +100,6 @@ function run() {
 
 module.exports = {
   run,
-  receipe
+  receipe,
+  timeout
 };
