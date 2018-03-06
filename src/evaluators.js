@@ -2,11 +2,15 @@ const execution = require('./execution');
 const fs = require('fs');
 
 let v2success = function(trace) {
-  return { success: trace.returnValue == 0 };
+  if (trace.returnValue != 0)
+    return { summary: 'Program ended with a non null return value: ' + trace.returnValue };
+  return { success: true };
 }
 
 let v2failure = function(trace) {
-  return { success: trace.returnValue != 0};
+  if (trace.returnValue == 0)
+    return { summary: 'Program ended with a null return value: ' + trace.returnValue };
+  return { success: true };
 }
 
 let v2file = function(trace) {
@@ -14,18 +18,60 @@ let v2file = function(trace) {
     .then((diffTrace) => {
       if (diffTrace.returnValue != 0) {
         return {
-          summary: 'Output differs',
-          message: '==== STDOUT ====\n' + trace.stdout
-               + '\n==== STDERR ====\n' + trace.stderr
-               + '\n=== DIFF OUT ===\n' + diffTrace.stdout
-               + '\n=== DIFF ERR ===\n' + diffTrace.stderr
-               + '\n================\n\n'
+          summary: 'Files differs',
+          diffTrace
         };
       } else {
         return { success: true };
       }
     });
 };
+
+let v2string = function(trace) {
+  let conf = {
+    filename: '.v2string',
+    referenceFilename: '.v2reference'
+  };
+
+  fs.writeFileSync(conf.filename, this.string);
+  fs.writeFileSync(conf.referenceFilename, this.reference);
+  return v2file.call(conf, trace)
+    .then((evaluation) => {
+      fs.unlinkSync(conf.filename);
+      fs.unlinkSync(conf.referenceFilename);
+      if (!evaluation.success)
+        evaluation.summary = 'Strings differs';
+      return evaluation;
+    });
+}
+
+let v2numbers = function(trace) {
+  let lengthDiffers = this.numbers.length + ' instead of ' + this.reference.length;
+  if (this.numbers.length < this.reference.length)
+    return {
+      summary: 'Not enough numbers, ' + lengthDiffers
+    };
+  else if (this.numbers.length > this.reference.length)
+    return {
+      summary: 'Too much numbers, ' + lengthDiffers
+    };
+
+  let differences = [];
+  for (let i = 0; i < this.reference.length; i++) {
+    if (Math.abs(this.numbers[i] - this.reference[i]) > this.precision)
+      differences.push({
+        index: i,
+        value: this.numbers[i],
+        referenceValue: this.reference[i]
+      });
+  }
+  if (differences.length)
+    return {
+      summary: differences.length + ' numbers differs with a precision of ' + this.precision,
+      differences
+    }
+  return { success: true };
+}
 
 let v2stdout = function(trace) {
   let conf = {
@@ -54,7 +100,9 @@ let v2stdout = function(trace) {
     .then((evaluation) => {
       fs.unlinkSync(conf.filename);
       if (unlinkReferenceFile)
-        fs.unlinkSync(conf.referenceFilename);  
+        fs.unlinkSync(conf.referenceFilename);
+      if (!evaluation.success)
+        evaluation.summary = 'Outputs differs';
       return evaluation;
     });
 };
@@ -62,6 +110,8 @@ let v2stdout = function(trace) {
 module.exports = {
   v2success,
   v2failure,
+  v2file,
+  v2string,
+  v2numbers,
   v2stdout,
-  v2file
 };
