@@ -56,19 +56,28 @@ let v2numbers = function(trace) {
       summary: 'Too much numbers, ' + lengthDiffers
     };
 
-  let differences = [];
+  let results = [];
+  let fails = 0;
   for (let i = 0; i < this.reference.length; i++) {
-    if (Math.abs(this.numbers[i] - this.reference[i]) > this.precision)
-      differences.push({
-        index: i,
-        value: this.numbers[i],
-        referenceValue: this.reference[i]
-      });
+    var status = 'distance > ' + this.precision;
+
+    if (this.numbers[i] == this.reference[i])
+      status = '';
+    else if (Math.abs(this.numbers[i] - this.reference[i]) <= this.precision)
+      status = 'near';
+    
+    fails += (status !== '');
+
+    results.push({
+      value: this.numbers[i],
+      referenceValue: this.reference[i],
+      status: status
+    });
   }
-  if (differences.length)
+  if (fails)
     return {
-      summary: differences.length + ' numbers differs with a precision of ' + this.precision,
-      differences
+      summary: 'Numbers differs',
+      results
     }
   return { success: true };
 }
