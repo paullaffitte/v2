@@ -14,11 +14,10 @@ function formatTrace(cmd, err, stdout, stderr) {
     returnValue: err ? err.code : 0,
   };
 
-  if (err && err.signal) {
-    trace.error = {
-      signal: err.signal,
-      label: err.killed ? 'Timeout' : 'Crash'
-    };
+  if (err && (err.signal || err.code == 139)) {
+    trace.error = { label: err.killed ? 'Timeout' : 'Crash'};
+    if (err.signal)
+      trace.error.signal = err.signal;
     if (err.killed)
       trace.error.time = _timeout;
   }
