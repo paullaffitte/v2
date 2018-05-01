@@ -77,7 +77,7 @@ v2.logger('v2.timeout.ls', (evaluation, trace) => {
 /*
 ** Global logger
 */
-v2.logger((evaluation, trace) => {
+v2.globalLogger((evaluation, trace) => {
   console.log('global scope ----------------');
   console.log('group: ', trace.scopeName);
   if (!evaluation.success)
